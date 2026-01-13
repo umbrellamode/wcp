@@ -788,6 +788,22 @@ function generateClaudeMd(info: ProjectInfo, existing: ExistingDoc): string {
     lines.push("");
   }
 
+  // Add wcp section
+  lines.push("## Background Processes");
+  lines.push("");
+  lines.push(
+    "Use `/wcp` to run dev servers and background processes. This allows you to start long-running processes while the user monitors logs from an external terminal.",
+  );
+  lines.push("");
+  lines.push("```bash");
+  lines.push("# Start dev server with wcp");
+  lines.push("wcp dev");
+  lines.push("");
+  lines.push("# User can monitor from another terminal");
+  lines.push("wcp watch");
+  lines.push("```");
+  lines.push("");
+
   return lines.join("\n");
 }
 
@@ -842,6 +858,21 @@ function generateAgentsMd(info: ProjectInfo, existing: ExistingDoc): string {
   lines.push("- Follow the existing code style and patterns");
   lines.push("- Run tests before submitting changes");
   lines.push("- Keep changes focused and minimal");
+  lines.push("");
+
+  // Add wcp section
+  lines.push("## Background Processes");
+  lines.push("");
+  lines.push(
+    "Use `wcp` to run dev servers and background processes. This allows you to start long-running processes while the user monitors logs from an external terminal.",
+  );
+  lines.push("");
+  lines.push("**Commands:**");
+  lines.push("- `wcp dev` - Auto-detect and start dev server");
+  lines.push("- `wcp watch` - Monitor logs from another terminal");
+  lines.push(
+    "- `wcp <name> -- <command>` - Start a named process (e.g., `wcp dev -- npm run dev`)",
+  );
   lines.push("");
 
   return lines.join("\n");

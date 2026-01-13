@@ -1,5 +1,25 @@
-// Initialize Deno KV for install counter
-const kv = await Deno.openKv();
+// Initialize Deno KV for install counter (lazy initialization)
+let kv: Deno.Kv | null = null;
+
+async function getKv(): Promise<Deno.Kv | null> {
+  if (kv) return kv;
+  try {
+    // On Deno Deploy, openKv() works without arguments
+    // Locally, try with a local path if DENO_DEPLOYMENT_ID is not set
+    if (Deno.env.get("DENO_DEPLOYMENT_ID")) {
+      kv = await Deno.openKv();
+    } else {
+      // Local development - use local KV path
+      const kvPath = Deno.env.get("DENO_KV_PATH") || "./.deno-kv";
+      kv = await Deno.openKv(kvPath);
+    }
+    return kv;
+  } catch (error) {
+    // Silently fail - install counter is optional
+    console.warn("KV not available, install counter disabled:", error);
+    return null;
+  }
+}
 
 const html = `<!DOCTYPE html>
 <html lang="en">
@@ -7,7 +27,7 @@ const html = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>wcp - bidirectional log streaming for AI agents</title>
-  <meta name="description" content="Bidirectional log streaming for Claude Code, Cursor, and OpenCode">
+  <meta name="description" content="Run dev servers in the background so your AI can debug errors while you watch the logs live. The shared terminal bridge for Claude, Cursor, and OpenCode.">
   
   <!-- SEO -->
   <meta name="keywords" content="wcp, wormhole, CLI, terminal, log streaming, AI agents, dev server, unix socket, Claude, Cursor, coding assistant">
@@ -19,7 +39,7 @@ const html = `<!DOCTYPE html>
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wcp.dev">
   <meta property="og:title" content="wcp - bidirectional log streaming for AI agents">
-  <meta property="og:description" content="Bidirectional log streaming for Claude Code, Cursor, and OpenCode">
+  <meta property="og:description" content="Run dev servers in the background so your AI can debug errors while you watch the logs live. The shared terminal bridge for Claude, Cursor, and OpenCode.">
   <meta property="og:image" content="https://wcp.dev/images/OG.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -28,7 +48,7 @@ const html = `<!DOCTYPE html>
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="wcp - bidirectional log streaming for AI agents">
-  <meta name="twitter:description" content="Bidirectional log streaming for Claude Code, Cursor, and OpenCode">
+  <meta name="twitter:description" content="Run dev servers in the background so your AI can debug errors while you watch the logs live. The shared terminal bridge for Claude, Cursor, and OpenCode.">
   <meta name="twitter:image" content="https://wcp.dev/images/OG.png">
 
   <!-- Favicon -->
@@ -97,12 +117,15 @@ const html = `<!DOCTYPE html>
       margin-bottom: 0;
       color: var(--foreground);
     }
-    .title-with-star {
+    .title-left {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
     }
-    .title-with-star .github-btn-wrapper {
+    .title-left .install-badge {
+      margin-top: 0.4rem;
+    }
+    .header-title .github-btn-wrapper {
       display: flex;
       align-items: center;
       height: 100%;
@@ -179,6 +202,8 @@ const html = `<!DOCTYPE html>
       color: var(--muted-foreground);
       cursor: pointer;
       padding: 0.5rem;
+      min-width: 44px;
+      min-height: 44px;
       transition: color 0.2s;
       display: flex;
       align-items: center;
@@ -186,6 +211,10 @@ const html = `<!DOCTYPE html>
     }
     .copy-btn:hover {
       color: var(--foreground);
+    }
+    .copy-btn:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
     .copy-btn svg {
       width: 18px;
@@ -300,6 +329,10 @@ const html = `<!DOCTYPE html>
     footer a:hover {
       color: var(--primary);
     }
+    footer a:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
     .footer-links {
       display: flex;
       gap: 1.5rem;
@@ -329,7 +362,14 @@ const html = `<!DOCTYPE html>
       .header-title {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.75rem;
+      }
+      .title-left {
+        flex-wrap: wrap;
         gap: 0.5rem;
+      }
+      .header-title .github-btn-wrapper {
+        margin-top: 0;
       }
       .install-row code {
         font-size: 0.75rem;
@@ -340,26 +380,26 @@ const html = `<!DOCTYPE html>
 <body>
   <div class="header">
     <div class="header-title">
-      <div class="title-with-star">
+      <div class="title-left">
         <h1>/wcp</h1>
-        <span class="github-btn-wrapper">
-          <a class="github-button" href="https://github.com/umbrellamode/wcp" 
-             data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-             data-icon="octicon-star"
-             data-size="large" 
-             data-show-count="true" 
-             aria-label="Star umbrellamode/wcp on GitHub">Star</a>
-        </span>
+        <span class="install-badge" id="install-badge">0 installs</span>
       </div>
-      <span class="install-badge" id="install-badge">0 installs</span>
+      <span class="github-btn-wrapper">
+        <a class="github-button" href="https://github.com/umbrellamode/wcp" 
+           data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+           data-icon="octicon-star"
+           data-size="large" 
+           data-show-count="true" 
+           aria-label="Star umbrellamode/wcp on GitHub">Star</a>
+      </span>
     </div>
-    <p class="tagline">Bidirectional log streaming for Claude Code, Cursor, and OpenCode. Run background dev servers while monitoring logs from external terminals.</p>
+    <p class="tagline">Run dev servers in the background so your AI can debug errors while you watch the logs live. The shared terminal bridge for Claude, Cursor, and OpenCode.</p>
   </div>
 
   <div class="logos">
-    <img class="logo" src="/images/claude.png" alt="Claude">
-    <img class="logo" src="/images/cursor.jpeg" alt="Cursor">
-    <img class="logo" src="/images/opencode.png" alt="OpenCode">
+    <img class="logo" src="/images/claude.png" alt="Claude Code logo">
+    <img class="logo" src="/images/cursor.jpeg" alt="Cursor logo">
+    <img class="logo" src="/images/opencode.png" alt="OpenCode logo">
   </div>
 
   <section class="installation">
@@ -367,7 +407,7 @@ const html = `<!DOCTYPE html>
     <div class="install-card">
       <div class="install-row">
         <code><span class="dim">$</span> curl -fsSL https://wcp.dev/install | bash</code>
-        <button class="copy-btn" id="copy-btn" title="Copy to clipboard">
+        <button class="copy-btn" id="copy-btn" title="Copy to clipboard" aria-label="Copy to clipboard">
           <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
           </svg>
@@ -381,7 +421,7 @@ const html = `<!DOCTYPE html>
         <code><span class="dim">></span> /wcp</code>
       </div>
     </div>
-    <p class="install-caption">Auto-detects Claude Code, Cursor, and OpenCode.</p>
+    <p class="install-caption">Zero-config setup. Automatically installs the <code>/wcp</code> slash command for Claude, Cursor, and OpenCode.</p>
   </section>
 
   <section>
@@ -424,15 +464,43 @@ const html = `<!DOCTYPE html>
   </section>
 
   <section>
-    <h2>Commands</h2>
-    <ul>
-      <li><code>wcp dev</code> — auto-detect and start dev server</li>
-      <li><code>wcp watch</code> — stream logs from all sessions</li>
-      <li><code>wcp &lt;name&gt; -- &lt;cmd&gt;</code> — start a process</li>
-      <li><code>wcp &lt;name&gt;</code> — connect to existing session</li>
-      <li><code>wcp list</code> — show active sessions</li>
-      <li><code>wcp kill &lt;name&gt;</code> — terminate a session</li>
-    </ul>
+    <h2>Workflow & Commands</h2>
+    <div class="install-card">
+      <div class="terminal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div>
+            <div style="color: var(--muted-foreground); font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">For the Agent</div>
+            <ul style="list-style: none; padding: 0;">
+              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+                <code style="color: var(--primary);">wcp dev</code>
+                <span style="color: var(--muted-foreground); font-size: 0.85rem;">Auto-detects and runs your dev script in the background.</span>
+              </li>
+              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+                <code style="color: var(--primary);">wcp &lt;name&gt; -- &lt;cmd&gt;</code>
+                <span style="color: var(--muted-foreground); font-size: 0.85rem;">Run any specific command (builds, tests, watchers).</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <div style="color: var(--muted-foreground); font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">For You</div>
+            <ul style="list-style: none; padding: 0;">
+              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+                <code style="color: var(--primary);">wcp watch</code>
+                <span style="color: var(--muted-foreground); font-size: 0.85rem;">Stream logs from all active sessions in your terminal.</span>
+              </li>
+              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+                <code style="color: var(--primary);">wcp list</code>
+                <span style="color: var(--muted-foreground); font-size: 0.85rem;">See what processes are currently running.</span>
+              </li>
+              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+                <code style="color: var(--primary);">wcp kill &lt;name&gt;</code>
+                <span style="color: var(--muted-foreground); font-size: 0.85rem;">Stop a background session.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <footer>
@@ -901,10 +969,16 @@ Deno.serve(async (req: Request) => {
 
   // API: Increment install counter
   if (path === "/api/install" && req.method === "POST") {
+    const db = await getKv();
+    if (!db) {
+      return new Response(JSON.stringify({ count: 0 }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     const key = ["installs", "count"];
-    const result = await kv.get<number>(key);
+    const result = await db.get<number>(key);
     const newCount = (result.value || 0) + 1;
-    await kv.set(key, newCount);
+    await db.set(key, newCount);
     return new Response(JSON.stringify({ count: newCount }), {
       headers: { "Content-Type": "application/json" },
     });
@@ -912,7 +986,13 @@ Deno.serve(async (req: Request) => {
 
   // API: Get install count
   if (path === "/api/count") {
-    const result = await kv.get<number>(["installs", "count"]);
+    const db = await getKv();
+    if (!db) {
+      return new Response(JSON.stringify({ count: 0 }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const result = await db.get<number>(["installs", "count"]);
     return new Response(JSON.stringify({ count: result.value || 0 }), {
       headers: { "Content-Type": "application/json" },
     });
