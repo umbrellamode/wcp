@@ -471,11 +471,11 @@ const html = `<!DOCTYPE html>
           <div>
             <div style="color: var(--muted-foreground); font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">For the Agent</div>
             <ul style="list-style: none; padding: 0;">
-              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+              <li style="margin-bottom: 1rem; padding-left: 1.2rem; position: relative; display: flex; flex-direction: column; gap: 0.25rem;">
                 <code style="color: var(--primary);">wcp dev</code>
                 <span style="color: var(--muted-foreground); font-size: 0.85rem;">Auto-detects and runs your dev script in the background.</span>
               </li>
-              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+              <li style="margin-bottom: 1rem; padding-left: 1.2rem; position: relative; display: flex; flex-direction: column; gap: 0.25rem;">
                 <code style="color: var(--primary);">wcp &lt;name&gt; -- &lt;cmd&gt;</code>
                 <span style="color: var(--muted-foreground); font-size: 0.85rem;">Run any specific command (builds, tests, watchers).</span>
               </li>
@@ -484,15 +484,15 @@ const html = `<!DOCTYPE html>
           <div>
             <div style="color: var(--muted-foreground); font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">For You</div>
             <ul style="list-style: none; padding: 0;">
-              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+              <li style="margin-bottom: 1rem; padding-left: 1.2rem; position: relative; display: flex; flex-direction: column; gap: 0.25rem;">
                 <code style="color: var(--primary);">wcp watch</code>
                 <span style="color: var(--muted-foreground); font-size: 0.85rem;">Stream logs from all active sessions in your terminal.</span>
               </li>
-              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+              <li style="margin-bottom: 1rem; padding-left: 1.2rem; position: relative; display: flex; flex-direction: column; gap: 0.25rem;">
                 <code style="color: var(--primary);">wcp list</code>
                 <span style="color: var(--muted-foreground); font-size: 0.85rem;">See what processes are currently running.</span>
               </li>
-              <li style="margin-bottom: 1rem; padding-left: 0; display: flex; flex-direction: column; gap: 0.25rem;">
+              <li style="margin-bottom: 1rem; padding-left: 1.2rem; position: relative; display: flex; flex-direction: column; gap: 0.25rem;">
                 <code style="color: var(--primary);">wcp kill &lt;name&gt;</code>
                 <span style="color: var(--muted-foreground); font-size: 0.85rem;">Stop a background session.</span>
               </li>
