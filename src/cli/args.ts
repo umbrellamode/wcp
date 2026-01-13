@@ -4,6 +4,7 @@ export type Command =
   | { type: "list" }
   | { type: "kill"; port: string }
   | { type: "dev" }
+  | { type: "watch" }
   | { type: "init" }
   | { type: "update" }
   | { type: "help" }
@@ -47,6 +48,10 @@ export function parseArgs(args: string[]): Command {
   // Dev command (only when no -- separator, otherwise it's a port named "dev")
   if (first === "dev" && args.indexOf("--") === -1) {
     return { type: "dev" };
+  }
+
+  if (first === "watch") {
+    return { type: "watch" };
   }
 
   if (first === "update") {

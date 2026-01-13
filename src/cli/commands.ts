@@ -26,6 +26,7 @@ USAGE:
   wcp dev                   Detect project and select dev command
   wcp <port> -- <command>   Create wcp and run command
   wcp <port>                Connect to existing wcp
+  wcp watch                 Stream all active sessions
   wcp list                  List active wcps
   wcp kill <port>           Close a wcp
   wcp init                  Generate CLAUDE.md and AGENTS.md
@@ -36,6 +37,7 @@ EXAMPLES:
   wcp dev                   Detect and run dev server
   wcp 3000 -- npm run dev   Start dev server in wcp
   wcp 3000                  Connect to wcp 3000
+  wcp watch                 Watch all sessions at once
   wcp kill 3000             Kill wcp 3000
   wcp init                  Generate AI agent docs
 `;
@@ -60,6 +62,10 @@ export async function executeCommand(cmd: Command): Promise<void> {
 
     case "dev":
       await devWormhole();
+      break;
+
+    case "watch":
+      await watchAll();
       break;
 
     case "init":
@@ -117,6 +123,44 @@ async function listWormholes(): Promise<void> {
     const status = alive ? "" : " (stale)";
     console.log(`  • Port ${port}${status}`);
   }
+}
+
+async function watchAll(): Promise<void> {
+  const sockets = await listSockets();
+
+  // Filter to only alive sockets
+  const aliveSockets: string[] = [];
+  for (const port of sockets) {
+    if (await isSocketAlive(port)) {
+      aliveSockets.push(port);
+    }
+  }
+
+  if (aliveSockets.length === 0) {
+    console.log("No active wcp sessions to watch.");
+    return;
+  }
+
+  console.log(`Watching ${aliveSockets.length} session(s): ${aliveSockets.join(", ")}\n`);
+
+  // Create clients for each session with different colors
+  const clients = aliveSockets.map((port, index) => {
+    const client = new WcpClient(port);
+    client.setColor(index);
+    return client;
+  });
+
+  // Handle SIGINT to exit cleanly
+  Deno.addSignalListener("SIGINT", () => {
+    console.log("\nStopping watch...");
+    Deno.exit(0);
+  });
+
+  // Connect to all sessions concurrently
+  await Promise.all(clients.map((client) => client.connectWatch()));
+
+  // If all sessions closed, exit
+  console.log("\nAll sessions closed.");
 }
 
 async function isSocketAlive(port: string): Promise<boolean> {
