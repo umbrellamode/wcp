@@ -6,11 +6,23 @@ async function getKv(): Promise<Deno.Kv | null> {
   try {
     // On Deno Deploy, openKv() works without arguments
     // Locally, try with a local path if DENO_DEPLOYMENT_ID is not set
-    if (Deno.env.get("DENO_DEPLOYMENT_ID")) {
+    let isDenoDeployment = false;
+    try {
+      isDenoDeployment = !!Deno.env.get("DENO_DEPLOYMENT_ID");
+    } catch {
+      // No env permission - assume local development
+    }
+
+    if (isDenoDeployment) {
       kv = await Deno.openKv();
     } else {
       // Local development - use local KV path
-      const kvPath = Deno.env.get("DENO_KV_PATH") || "./.deno-kv";
+      let kvPath = "./.deno-kv";
+      try {
+        kvPath = Deno.env.get("DENO_KV_PATH") || kvPath;
+      } catch {
+        // No env permission - use default path
+      }
       kv = await Deno.openKv(kvPath);
     }
     return kv;
