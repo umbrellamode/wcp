@@ -2,67 +2,60 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
-
-permissions:
-  contents: write
+    branches: [main]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            binary: wcp-darwin-arm64
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            binary: wcp-darwin-x64
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            binary: wcp-linux-x64
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-
-      - name: Build binary
-        run: |
-          deno compile \
-            --allow-net \
-            --allow-read \
-            --allow-write \
-            --allow-run \
-            --allow-env \
-            --target ${{ matrix.target }} \
-            --output ${{ matrix.binary }} \
-            mod.ts
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.binary }}
-          path: ${{ matrix.binary }}
-
   release:
-    needs: build
+    name: Build and Release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: binaries
-          merge-multiple: true
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
         with:
-          files: binaries/*
-          generate_release_notes: true
+          deno-version: v2.x
+
+      - name: Get version from deno.json
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' deno.json)
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: v$VERSION"
+
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if gh release view ${{ steps.version.outputs.version }} > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile binaries
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          mkdir -p dist
+          deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --target aarch64-apple-darwin --output dist/wcp-darwin-arm64 mod.ts
+          deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --target x86_64-apple-darwin --output dist/wcp-darwin-x64 mod.ts
+          deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --target x86_64-unknown-linux-gnu --output dist/wcp-linux-x64 mod.ts
+
+      - name: Create release
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          gh release create ${{ steps.version.outputs.version }} \
+            dist/wcp-darwin-arm64 \
+            dist/wcp-darwin-x64 \
+            dist/wcp-linux-x64 \
+            --title "${{ steps.version.outputs.version }}" \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Skip release
+        if: steps.check_release.outputs.exists == 'true'
+        run: echo "Release ${{ steps.version.outputs.version }} already exists, skipping..."
