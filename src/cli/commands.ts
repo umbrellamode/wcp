@@ -6,10 +6,22 @@ import {
   removeSocket,
   socketExists,
 } from "../utils/socket.ts";
+import { getConfigPath, readConfig } from "../utils/config.ts";
 import { detectProject, type DevOption } from "./detect.ts";
 import { selectOption } from "./menu.ts";
 import { initDocs } from "./init.ts";
 import type { Command } from "./args.ts";
+import {
+  bold,
+  bullet,
+  dim,
+  error,
+  green,
+  info,
+  nextSteps,
+  warning,
+  yellow,
+} from "./output.ts";
 
 const VERSION = "0.2.2";
 
@@ -22,27 +34,36 @@ const LOGO = `
 `;
 
 const HELP_TEXT = `
-wcp - Bidirectional log streaming
+${bold("wcp")} - Bidirectional log streaming for AI agents
 
-USAGE:
-  wcp dev                   Detect project and select dev command
-  wcp <port> -- <command>   Create wcp and run command
-  wcp <port>                Connect to existing wcp
-  wcp watch                 Stream all active sessions
-  wcp list                  List active wcps
-  wcp kill <port>           Close a wcp
-  wcp init                  Generate CLAUDE.md and AGENTS.md
-  wcp update                Update to latest version
-  wcp version               Show version
-  wcp help                  Show this help
+${bold("QUICK START")}
+  wcp init              Set up project and detect dev command
+  wcp start             Start dev server from saved config
+  wcp watch             Monitor logs (auto-starts if needed)
 
-EXAMPLES:
-  wcp dev                   Detect and run dev server
-  wcp 3000 -- npm run dev   Start dev server in wcp
-  wcp 3000                  Connect to wcp 3000
-  wcp watch                 Watch all sessions at once
-  wcp kill 3000             Kill wcp 3000
-  wcp init                  Generate AI agent docs
+${bold("USAGE")}
+  wcp dev               Detect and select dev command interactively
+  wcp <id> -- <cmd>     Create named session with command
+  wcp <id>              Connect to existing session
+  wcp list              List active sessions
+  wcp kill <id>         Close a session
+  wcp status            Show project config and sessions
+
+${bold("MAINTENANCE")}
+  wcp update            Update to latest version
+  wcp version           Show version
+  wcp help              Show this help
+
+${bold("EXAMPLES")}
+  wcp init              # Set up project (creates WCP.md)
+  wcp start             # Start configured dev server
+  wcp watch             # Watch all sessions
+  wcp 3000 -- npm dev   # Run command in named session
+  wcp api -- cargo run  # Another named session
+
+${bold("FILES")}
+  WCP.md                Project configuration
+  ~/.wcp/               Socket files for active sessions
 `;
 
 export async function executeCommand(cmd: Command): Promise<void> {
@@ -65,6 +86,14 @@ export async function executeCommand(cmd: Command): Promise<void> {
 
     case "dev":
       await devWormhole();
+      break;
+
+    case "start":
+      await startFromConfig();
+      break;
+
+    case "status":
+      await showStatus();
       break;
 
     case "watch":
@@ -144,12 +173,35 @@ async function watchAll(): Promise<void> {
   }
 
   if (aliveSockets.length === 0) {
-    console.log("No active wcp sessions to watch.");
+    // No active sessions - check if we can auto-start
+    const config = await readConfig();
+
+    if (config?.devServer) {
+      info("No active sessions found");
+      console.log("");
+      info(`Starting dev server: ${bold(config.devServer.command.join(" "))}`);
+      console.log("");
+
+      const daemon = new WcpDaemon({
+        port: "dev",
+        command: config.devServer.command,
+      });
+      await daemon.start();
+      return;
+    }
+
+    warning("No active wcp sessions to watch");
+    nextSteps([
+      `Run ${bold("wcp init")} to configure your dev command`,
+      `Or run ${bold("wcp dev")} to start a dev server`,
+    ]);
     return;
   }
 
   console.log(
-    `Watching ${aliveSockets.length} session(s): ${aliveSockets.join(", ")}\n`,
+    `  Watching ${bold(String(aliveSockets.length))} session(s): ${
+      aliveSockets.join(", ")
+    }\n`,
   );
 
   // Create clients for each session with different colors
@@ -195,6 +247,105 @@ async function killWormhole(port: string): Promise<void> {
   // The daemon will detect this and shut down on its next operation
   await removeSocket(port);
   console.log(`Wormhole ${port} killed.`);
+}
+
+async function startFromConfig(): Promise<void> {
+  const config = await readConfig();
+
+  if (!config) {
+    error("No configuration found");
+    nextSteps([
+      `Run ${bold("wcp init")} to set up your project`,
+    ]);
+    Deno.exit(1);
+  }
+
+  if (!config.devServer) {
+    error("No dev server configured");
+    nextSteps([
+      `Run ${bold("wcp init")} to detect your dev command`,
+      `Or run ${bold("wcp dev")} to select one interactively`,
+    ]);
+    Deno.exit(1);
+  }
+
+  // Check if already running
+  if (await socketExists("dev") && await isSocketAlive("dev")) {
+    info("Dev server already running. Connecting...");
+    console.log("");
+    await connectWormhole("dev");
+    return;
+  }
+
+  console.log(LOGO);
+  console.log(`  Starting: ${bold(config.devServer.command.join(" "))}`);
+  console.log(`  Source: ${dim(config.devServer.source)}`);
+  console.log("");
+
+  const daemon = new WcpDaemon({
+    port: "dev",
+    command: config.devServer.command,
+  });
+  await daemon.start();
+}
+
+async function showStatus(): Promise<void> {
+  console.log(LOGO);
+
+  // Check for config
+  const config = await readConfig();
+
+  if (!config) {
+    warning("No configuration found");
+    console.log("");
+    info(`Config path: ${dim(getConfigPath())}`);
+    nextSteps([
+      `Run ${bold("wcp init")} to set up your project`,
+    ]);
+    return;
+  }
+
+  // Project info
+  console.log(`  ${bold("Project")}`);
+  bullet(`Type: ${config.project.type}`);
+  if (config.project.packageManager) {
+    bullet(`Package Manager: ${config.project.packageManager}`);
+  }
+  console.log("");
+
+  // Dev server info
+  console.log(`  ${bold("Dev Server")}`);
+  if (config.devServer) {
+    bullet(`Command: ${green(config.devServer.command.join(" "))}`);
+    bullet(`Source: ${dim(config.devServer.source)}`);
+  } else {
+    bullet(`${yellow("Not configured")}`);
+  }
+  console.log("");
+
+  // Active sessions
+  const sockets = await listSockets();
+  const aliveSockets: string[] = [];
+  for (const port of sockets) {
+    if (await isSocketAlive(port)) {
+      aliveSockets.push(port);
+    }
+  }
+
+  console.log(`  ${bold("Sessions")}`);
+  if (aliveSockets.length > 0) {
+    for (const port of aliveSockets) {
+      bullet(`${green(port)} ${dim("(running)")}`);
+    }
+  } else {
+    bullet(`${dim("No active sessions")}`);
+  }
+  console.log("");
+
+  // Config file location
+  console.log(`  ${bold("Files")}`);
+  bullet(`Config: ${dim(getConfigPath())}`);
+  console.log("");
 }
 
 async function devWormhole(): Promise<void> {

@@ -7,7 +7,7 @@ const html = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>wcp - bidirectional log streaming for AI agents</title>
-  <meta name="description" content="Share terminal output between AI coding agents and external terminals. Monitor dev servers from anywhere.">
+  <meta name="description" content="Bidirectional log streaming for Claude Code, Cursor, and OpenCode">
   
   <!-- SEO -->
   <meta name="keywords" content="wcp, wormhole, CLI, terminal, log streaming, AI agents, dev server, unix socket, Claude, Cursor, coding assistant">
@@ -19,8 +19,8 @@ const html = `<!DOCTYPE html>
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://wcp.dev">
   <meta property="og:title" content="wcp - bidirectional log streaming for AI agents">
-  <meta property="og:description" content="Share terminal output between AI coding agents and external terminals. Monitor dev servers from anywhere.">
-  <meta property="og:image" content="https://wcp.dev/og.png">
+  <meta property="og:description" content="Bidirectional log streaming for Claude Code, Cursor, and OpenCode">
+  <meta property="og:image" content="https://wcp.dev/images/OG.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:site_name" content="wcp">
@@ -28,103 +28,211 @@ const html = `<!DOCTYPE html>
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="wcp - bidirectional log streaming for AI agents">
-  <meta name="twitter:description" content="Share terminal output between AI coding agents and external terminals. Monitor dev servers from anywhere.">
-  <meta name="twitter:image" content="https://wcp.dev/og.png">
+  <meta name="twitter:description" content="Bidirectional log streaming for Claude Code, Cursor, and OpenCode">
+  <meta name="twitter:image" content="https://wcp.dev/images/OG.png">
 
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕳️</text></svg>">
   
+  <!-- Geist Font -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/style.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-mono/style.min.css">
+  
   <style>
+    :root {
+      /* Colors from design system - dark theme */
+      --background: #000000;
+      --foreground: oklch(0.985 0.001 106.423);
+      --card: oklch(0.216 0.006 56.043);
+      --card-foreground: oklch(0.985 0.001 106.423);
+      --primary: #BAE1FF;
+      --primary-foreground: oklch(0.216 0.006 56.043);
+      --secondary: oklch(0.268 0.007 34.298);
+      --secondary-foreground: oklch(0.985 0.001 106.423);
+      --muted: oklch(0.268 0.007 34.298);
+      --muted-foreground: oklch(0.709 0.01 56.259);
+      --accent: oklch(0.268 0.007 34.298);
+      --accent-foreground: oklch(0.985 0.001 106.423);
+      --border: oklch(1 0 0 / 10%);
+      --input: oklch(1 0 0 / 15%);
+      --ring: oklch(0.553 0.013 58.071);
+    }
+    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      border-color: var(--border);
     }
+    
     body {
-      background: #000;
-      color: #fff;
-      font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+      background: var(--background);
+      color: var(--foreground);
+      font-family: "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       font-size: 14px;
       line-height: 1.6;
       padding: 3rem 1.5rem;
       max-width: 720px;
       margin: 0 auto;
     }
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 400;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.02em;
+    
+    code, pre {
+      font-family: "Geist Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace;
     }
-    .tagline {
-      color: #888;
+    
+    /* Header */
+    .header {
       margin-bottom: 2.5rem;
     }
+    .header-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 0;
+      color: var(--foreground);
+    }
+    .title-with-star {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .title-with-star .github-btn-wrapper {
+      display: flex;
+      align-items: center;
+      height: 100%;
+      margin-top: 0.5rem;
+    }
+    .install-badge {
+      background: var(--secondary);
+      color: var(--muted-foreground);
+      font-size: 0.75rem;
+      font-weight: 400;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+    }
+    .install-badge.pulse {
+      animation: pulse 0.3s ease-out;
+    }
+    .tagline {
+      color: var(--muted-foreground);
+      font-size: 1rem;
+      line-height: 1.6;
+      max-width: 600px;
+      margin-top: 1rem;
+    }
+    
+    /* Logos */
     .logos {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 3rem;
-      flex-wrap: wrap;
-    }
-    .logos a {
-      color: #888;
-      text-decoration: none;
-      padding: 0.4rem 0.8rem;
-      border: 1px solid #333;
-      border-radius: 4px;
-      font-size: 12px;
-      transition: all 0.2s;
-    }
-    .logos a:hover {
-      color: #fff;
-      border-color: #666;
-    }
-    .logos .github-btn-wrapper {
-      display: inline-flex;
+      gap: 1.5rem;
+      margin: 2rem 0;
       align-items: center;
-      height: 28px;
     }
-    .install {
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 3rem;
+    .logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+    
+    /* Installation section */
+    .installation {
+      margin: 3rem 0;
+    }
+    .installation h2 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--foreground);
+      margin-bottom: 1.25rem;
+      text-transform: none;
+      letter-spacing: normal;
+    }
+    .install-card {
+      background: var(--card);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .install-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 1.25rem 1.5rem;
     }
-    .install code {
-      color: #0f0;
+    .install-row code {
+      color: var(--muted-foreground);
+      font-family: "Geist Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 0.9rem;
     }
-    .install button {
+    .install-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0;
+    }
+    .copy-btn {
       background: transparent;
-      border: 1px solid #333;
-      color: #888;
-      padding: 0.3rem 0.6rem;
-      border-radius: 4px;
+      border: none;
+      color: var(--muted-foreground);
       cursor: pointer;
-      font-family: inherit;
-      font-size: 12px;
-      transition: all 0.2s;
+      padding: 0.5rem;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .install button:hover {
-      color: #fff;
-      border-color: #666;
+    .copy-btn:hover {
+      color: var(--foreground);
     }
+    .copy-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .install-caption {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+      margin-top: 1rem;
+    }
+    
+    /* Terminal styling for Quick Start */
+    .terminal-header {
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .terminal-label {
+      color: var(--muted-foreground);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+    }
+    .terminal-body pre {
+      font-family: "Geist Mono", "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+    
+    /* Sections */
     section {
       margin-bottom: 2.5rem;
     }
     h2 {
       font-size: 1rem;
       font-weight: 600;
-      color: #fff;
+      color: var(--foreground);
       margin-bottom: 1rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
     p, li {
-      color: #aaa;
+      color: var(--muted-foreground);
     }
     ul {
       list-style: none;
@@ -139,150 +247,179 @@ const html = `<!DOCTYPE html>
       content: "→";
       position: absolute;
       left: 0;
-      color: #555;
+      color: var(--primary);
     }
+    li code {
+      color: var(--primary);
+    }
+    
+    /* Example blocks */
     .example {
-      background: #0a0a0a;
-      border: 1px solid #222;
-      border-radius: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
       padding: 1.25rem;
       margin-top: 1rem;
       overflow-x: auto;
     }
-    .example .header {
-      color: #666;
+    .example .example-header {
+      color: var(--muted-foreground);
       margin-bottom: 1rem;
       padding-bottom: 0.75rem;
-      border-bottom: 1px solid #222;
+      border-bottom: 1px solid var(--border);
     }
     .example pre {
       font-family: inherit;
       font-size: 13px;
       line-height: 1.5;
     }
-    .dim { color: #555; }
-    .green { color: #0f0; }
-    .yellow { color: #ff0; }
-    .cyan { color: #0ff; }
-    .gray { color: #888; }
+    .dim { color: var(--muted-foreground); }
+    .primary { color: var(--primary); }
+    .green { color: #86efac; }
+    .yellow { color: #fde047; }
+    .cyan { color: var(--primary); }
+    .gray { color: var(--muted-foreground); }
+    
+    /* Footer */
     footer {
       margin-top: 4rem;
       padding-top: 2rem;
-      border-top: 1px solid #222;
-      color: #555;
+      border-top: 1px solid var(--border);
+      color: var(--muted-foreground);
       font-size: 12px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
       flex-wrap: wrap;
       gap: 1rem;
     }
     footer a {
-      color: #555;
+      color: var(--muted-foreground);
       text-decoration: none;
+      transition: color 0.2s;
     }
     footer a:hover {
-      color: #888;
+      color: var(--primary);
     }
-    .counter {
+    .footer-links {
       display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-      margin-bottom: 3rem;
+      gap: 1.5rem;
+      align-items: center;
     }
-    .counter-number {
-      font-size: 2rem;
-      font-weight: 600;
-      color: #0f0;
-      font-variant-numeric: tabular-nums;
+    .github-btn-wrapper {
+      display: inline-flex;
+      align-items: center;
+      height: 28px;
     }
-    .counter-label {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    .counter-number.pulse {
-      animation: pulse 0.3s ease-out;
-    }
+    
+    /* Animations */
     @keyframes pulse {
       0% { transform: scale(1); }
-      50% { transform: scale(1.1); color: #4f4; }
+      50% { transform: scale(1.05); opacity: 1; }
       100% { transform: scale(1); }
+    }
+    
+    /* Responsive */
+    @media (max-width: 600px) {
+      .logo-boxes {
+        flex-direction: column;
+      }
+      .logo-box {
+        padding: 1.5rem 1rem;
+      }
+      .header-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      .install-row code {
+        font-size: 0.75rem;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>/wcp</h1>
-  <p class="tagline">bidirectional log streaming for AI coding agents</p>
+  <div class="header">
+    <div class="header-title">
+      <div class="title-with-star">
+        <h1>/wcp</h1>
+        <span class="github-btn-wrapper">
+          <a class="github-button" href="https://github.com/umbrellamode/wcp" 
+             data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+             data-icon="octicon-star"
+             data-size="large" 
+             data-show-count="true" 
+             aria-label="Star umbrellamode/wcp on GitHub">Star</a>
+        </span>
+      </div>
+      <span class="install-badge" id="install-badge">0 installs</span>
+    </div>
+    <p class="tagline">Bidirectional log streaming for Claude Code, Cursor, and OpenCode. Run background dev servers while monitoring logs from external terminals.</p>
+  </div>
 
   <div class="logos">
-    <a href="/docs">Documentation</a>
-    <a href="https://github.com/umbrellamode/wcp" target="_blank">GitHub</a>
-    <span class="github-btn-wrapper">
-      <a class="github-button" href="https://github.com/umbrellamode/wcp" 
-         data-color-scheme="no-preference: dark; light: dark; dark: dark;"
-         data-icon="octicon-star"
-         data-size="large" 
-         data-show-count="true" 
-         aria-label="Star umbrellamode/wcp on GitHub">Star</a>
-    </span>
+    <img class="logo" src="/images/claude.png" alt="Claude">
+    <img class="logo" src="/images/cursor.jpeg" alt="Cursor">
+    <img class="logo" src="/images/opencode.png" alt="OpenCode">
   </div>
 
-  <div class="install">
-    <code>$ curl -fsSL https://wcp.dev/install | bash</code>
-    <button onclick="navigator.clipboard.writeText('curl -fsSL https://wcp.dev/install | bash')">Copy</button>
-  </div>
-
-  <div class="counter">
-    <span class="counter-number" id="counter">0</span>
-    <span class="counter-label">installs</span>
-  </div>
-
-  <section>
-    <h2>The Problem</h2>
-    <ul>
-      <li>AI agents run dev servers but you can't see the logs</li>
-      <li>No way to monitor background processes from external terminals</li>
-      <li>Joining late means missing important output</li>
-    </ul>
-  </section>
-
-  <section>
-    <h2>The Solution</h2>
-    <p>wcp creates a Unix socket that broadcasts output to all connected terminals. Late joiners see the last 1000 lines of history.</p>
+  <section class="installation">
+    <h2>Installation</h2>
+    <div class="install-card">
+      <div class="install-row">
+        <code><span class="dim">$</span> curl -fsSL https://wcp.dev/install | bash</code>
+        <button class="copy-btn" id="copy-btn" title="Copy to clipboard">
+          <svg class="icon-copy" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+          </svg>
+          <svg class="icon-check" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="display:none;">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        </button>
+      </div>
+      <hr class="install-divider">
+      <div class="install-row">
+        <code><span class="dim">></span> /wcp</code>
+      </div>
+    </div>
+    <p class="install-caption">Auto-detects Claude Code, Cursor, and OpenCode.</p>
   </section>
 
   <section>
     <h2>Quick Start</h2>
     
-    <div class="example">
-      <div class="header">═══════════════════════════════════════════ STEP 1: INSTALL</div>
-      <pre><span class="dim">$</span> <span class="green">curl -fsSL https://wcp.dev/install | bash</span></pre>
-    </div>
-
-    <div class="example">
-      <div class="header">═══════════════════════════════════════════ STEP 2: AI CODING SESSION</div>
-      <pre><span class="dim">$</span> <span class="green">wcp dev</span>
-<span class="cyan">✓ wcp opened: dev</span>
+    <div class="install-card">
+      <div class="terminal-header">
+        <span class="terminal-label">AI CODING SESSION</span>
+      </div>
+      <div class="terminal-body">
+        <pre><span class="dim">$</span> <span class="primary">wcp dev</span>
+<span class="green">✓ wcp opened: dev</span>
 <span class="dim">  Socket: ~/.wcp/wcp-dev.sock</span>
 
 <span class="gray">> my-app@1.0.0 dev
 > next dev
 
-  ▲ Next.js 14.0.0
+  ▲ Next.js 16.0.0
   - Local: http://localhost:3000</span></pre>
+      </div>
     </div>
 
-    <div class="example">
-      <div class="header">═══════════════════════════════════════════ STEP 3: YOUR TERMINAL</div>
-      <pre><span class="dim">$</span> <span class="green">wcp watch</span>
-<span class="cyan">Watching 1 session(s): dev</span>
+    <div class="install-card" style="margin-top: 1rem;">
+      <div class="terminal-header">
+        <span class="terminal-label">YOUR TERMINAL</span>
+      </div>
+      <div class="terminal-body">
+        <pre><span class="dim">$</span> <span class="primary">wcp watch</span>
+<span class="green">Watching 1 session(s): dev</span>
 
 <span class="yellow">--- Replaying 12 buffered lines ---</span>
 <span class="gray">> my-app@1.0.0 dev
 > next dev
 
-  ▲ Next.js 14.0.0
+  ▲ Next.js 16.0.0
   - Local: http://localhost:3000</span>
 <span class="yellow">--- Live stream ---</span></pre>
+      </div>
     </div>
   </section>
 
@@ -299,51 +436,50 @@ const html = `<!DOCTYPE html>
   </section>
 
   <footer>
-    <span>© 2025 wcp</span>
-    <div>
+    <span>© 2025 umbrellamode</span>
+    <div class="footer-links">
+      <a href="/docs">Documentation</a>
       <a href="https://github.com/umbrellamode/wcp">GitHub</a>
     </div>
   </footer>
 
   <script>
-    const counterEl = document.getElementById('counter');
-    let currentCount = 0;
-
-    function animateCount(target) {
-      const start = currentCount;
-      const diff = target - start;
-      if (diff === 0) return;
-
-      const duration = 500;
-      const startTime = performance.now();
-
-      counterEl.classList.add('pulse');
-      setTimeout(() => counterEl.classList.remove('pulse'), 300);
-
-      function update(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const value = Math.round(start + diff * eased);
-        counterEl.textContent = value.toLocaleString();
-        if (progress < 1) requestAnimationFrame(update);
-        else currentCount = target;
-      }
-      requestAnimationFrame(update);
-    }
-
+    // Copy button
+    const copyBtn = document.getElementById('copy-btn');
+    const iconCopy = copyBtn.querySelector('.icon-copy');
+    const iconCheck = copyBtn.querySelector('.icon-check');
+    
+    copyBtn.addEventListener('click', async () => {
+      await navigator.clipboard.writeText('curl -fsSL https://wcp.dev/install | bash');
+      iconCopy.style.display = 'none';
+      iconCheck.style.display = 'block';
+      copyBtn.style.color = '#22c55e';
+      
+      setTimeout(() => {
+        iconCopy.style.display = 'block';
+        iconCheck.style.display = 'none';
+        copyBtn.style.color = '';
+      }, 2000);
+    });
+    
+    // Install count
     async function fetchCount() {
       try {
         const res = await fetch('/api/count');
         const data = await res.json();
-        if (data.count !== currentCount) {
-          animateCount(data.count);
+        const badge = document.getElementById('install-badge');
+        if (badge) {
+          const newText = data.count.toLocaleString() + ' installs';
+          if (badge.textContent !== newText) {
+            badge.textContent = newText;
+            badge.classList.add('pulse');
+            setTimeout(() => badge.classList.remove('pulse'), 300);
+          }
         }
       } catch (e) {}
     }
-
     fetchCount();
-    setInterval(fetchCount, 3000);
+    setInterval(fetchCount, 30000);
   </script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
@@ -733,13 +869,13 @@ async function renderDocs(): Promise<string> {
   <meta property="og:url" content="https://wcp.dev/docs">
   <meta property="og:title" content="wcp Documentation">
   <meta property="og:description" content="Documentation for wcp - bidirectional log streaming CLI">
-  <meta property="og:image" content="https://wcp.dev/og.png">
+  <meta property="og:image" content="https://wcp.dev/images/OG.png">
   
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="wcp Documentation">
   <meta name="twitter:description" content="Documentation for wcp - bidirectional log streaming CLI">
-  <meta name="twitter:image" content="https://wcp.dev/og.png">
+  <meta name="twitter:image" content="https://wcp.dev/images/OG.png">
   
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕳️</text></svg>">
@@ -791,6 +927,30 @@ Deno.serve(async (req: Request) => {
         "Cache-Control": "public, max-age=86400",
       },
     });
+  }
+
+  // Serve images from /images/
+  if (path.startsWith("/images/")) {
+    const filename = path.slice(8); // Remove "/images/"
+    const ext = filename.split(".").pop()?.toLowerCase();
+    const contentType = ext === "png"
+      ? "image/png"
+      : ext === "jpeg" || ext === "jpg"
+      ? "image/jpeg"
+      : "application/octet-stream";
+    try {
+      const imageData = await Deno.readFile(
+        new URL(`./images/${filename}`, import.meta.url),
+      );
+      return new Response(imageData, {
+        headers: {
+          "Content-Type": contentType,
+          "Cache-Control": "public, max-age=86400",
+        },
+      });
+    } catch {
+      return new Response("Not found", { status: 404 });
+    }
   }
 
   // Serve install script

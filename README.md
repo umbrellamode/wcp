@@ -36,18 +36,84 @@ This auto-detects your project and starts the dev server in a wormhole.
 wcp watch
 ```
 
-That's it! Your AI agent runs the dev server while you watch the logs separately.
+That's it! Your AI agent runs the dev server while you watch the logs
+separately.
+
+## Project Setup
+
+### Initialize Your Project
+
+Run `wcp init` to set up your project:
+
+```bash
+wcp init
+```
+
+This will:
+
+1. Generate `CLAUDE.md` and `AGENTS.md` for AI agents
+2. Detect your dev server command
+3. Save configuration to `WCP.md`
+
+### Start Your Dev Server
+
+Once initialized, start your dev server with:
+
+```bash
+wcp start
+```
+
+Or have it auto-start when watching:
+
+```bash
+wcp watch
+```
+
+### Check Status
+
+See your current configuration and active sessions:
+
+```bash
+wcp status
+```
+
+### Configuration
+
+The `WCP.md` file stores your project settings in a human-readable format:
+
+```markdown
+# WCP.md
+
+This file configures [wcp](https://wcp.dev) for this project.
+
+## Dev Server
+
+**Command:** `npm run dev`
+
+**Source:** package.json
+
+## Configuration
+
+\`\`\`json { "project": { "type": "Node.js", "packageManager": "npm" },
+"devServer": { "name": "dev", "command": ["npm", "run", "dev"], "source":
+"package.json" } } \`\`\`
+```
+
+Edit this file to customize your dev command. The JSON block in the
+Configuration section is parsed by wcp.
 
 ## Usage
 
 ```
-wcp dev                   Detect project and start dev server
-wcp watch                 Stream logs from all active sessions
-wcp <port> -- <command>   Create wormhole and run command
-wcp <port>                Connect to existing wormhole
-wcp list                  List active wormholes
-wcp kill <port>           Close a wormhole
-wcp init                  Generate CLAUDE.md and AGENTS.md
+wcp init                  Set up project and detect dev command
+wcp start                 Start dev server from saved config
+wcp watch                 Monitor logs (auto-starts if needed)
+wcp status                Show project config and sessions
+wcp dev                   Detect and select dev command interactively
+wcp <id> -- <command>     Create named session with command
+wcp <id>                  Connect to existing session
+wcp list                  List active sessions
+wcp kill <id>             Close a session
 wcp update                Update to latest version
 wcp help                  Show help
 ```
@@ -55,6 +121,18 @@ wcp help                  Show help
 ## Examples
 
 ```bash
+# Initialize project (creates WCP.md)
+wcp init
+
+# Start configured dev server
+wcp start
+
+# Watch all sessions (auto-starts if needed)
+wcp watch
+
+# Check project status
+wcp status
+
 # Run a Next.js dev server
 wcp 3000 -- npm run dev
 
@@ -64,13 +142,10 @@ wcp api -- cargo run
 # Connect from another terminal
 wcp api
 
-# Watch all active sessions
-wcp watch
-
-# Kill a wormhole
+# Kill a session
 wcp kill api
 
-# List all active wormholes
+# List all active sessions
 wcp list
 ```
 
@@ -152,7 +227,8 @@ src/
 │   ├── animation.ts     # ASCII animations
 │   ├── detect.ts        # Project detection
 │   ├── init.ts          # Init command
-│   └── menu.ts          # Interactive menu
+│   ├── menu.ts          # Interactive menu
+│   └── output.ts        # Output formatting utilities
 ├── core/                 # Core functionality
 │   ├── daemon.ts        # Server/daemon
 │   ├── client.ts        # Client connection
@@ -160,6 +236,7 @@ src/
 │   ├── process.ts       # Child process handling
 │   └── protocol.ts      # Message protocol
 └── utils/                # Utilities
+    ├── config.ts        # Project configuration
     ├── ring-buffer.ts   # Circular buffer
     └── socket.ts        # Socket management
 ```

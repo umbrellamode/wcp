@@ -1,6 +1,20 @@
 import { exists } from "@std/fs";
-import { basename, join } from "@std/path";
+import { basename } from "@std/path";
 import { playWormholeAnimation, spinner } from "./animation.ts";
+import { detectProject, type DevOption } from "./detect.ts";
+import { selectOption } from "./menu.ts";
+import { configExists, writeConfig } from "../utils/config.ts";
+import {
+  bold,
+  box,
+  dim,
+  green,
+  icons,
+  info,
+  isTTY,
+  nextSteps,
+  warning,
+} from "./output.ts";
 
 interface ProjectInfo {
   name: string;
@@ -22,7 +36,7 @@ interface ExistingDoc {
 }
 
 /**
- * Scan the project and generate/update CLAUDE.md and AGENTS.md
+ * Scan the project and generate/update CLAUDE.md, AGENTS.md, and WCP.md
  */
 export async function initDocs(): Promise<void> {
   // Play the wormhole animation intro
@@ -34,8 +48,7 @@ export async function initDocs(): Promise<void> {
     "Scanning directory structure...",
     "Analyzing configuration...",
     "Reading existing docs...",
-    "Generating CLAUDE.md...",
-    "Generating AGENTS.md...",
+    "Detecting dev commands...",
   ];
 
   let stepIndex = 0;
@@ -72,28 +85,81 @@ export async function initDocs(): Promise<void> {
   await Deno.writeTextFile("CLAUDE.md", claudeMd);
   await Deno.writeTextFile("AGENTS.md", agentsMd);
 
-  // Final output
-  console.log("");
-  console.log("  ╭─────────────────────────────────────╮");
-  console.log("  │                                     │");
-  console.log("  │   ◈  Initialization Complete  ◈    │");
-  console.log("  │                                     │");
-  console.log("  │   ✓ CLAUDE.md                      │");
-  console.log("  │   ✓ AGENTS.md                      │");
-  console.log("  │                                     │");
-  console.log("  ╰─────────────────────────────────────╯");
-  console.log("");
-}
+  // Detect and save dev command
+  const project = await detectProject();
+  let devCommand: DevOption | null = null;
 
-/**
- * Check if running in a TTY
- */
-function isTTY(): boolean {
-  try {
-    return Deno.stdout.isTerminal();
-  } catch {
-    return false;
+  if (project && project.options.length > 0) {
+    console.log("");
+    const typeLabel = project.packageManager
+      ? `${project.type} (${project.packageManager})`
+      : project.type;
+    info(`Detected ${bold(typeLabel)} project`);
+
+    if (project.options.length === 1) {
+      // Auto-select if only one option
+      devCommand = project.options[0];
+      info(`Found dev command: ${bold(devCommand.cmd.join(" "))}`);
+    } else if (isTTY()) {
+      // Interactive selection for multiple options
+      console.log("");
+      const menuOptions = project.options.map((opt) => ({
+        label: opt.name,
+        description: opt.cmd.join(" "),
+        value: opt,
+      }));
+
+      devCommand = await selectOption(
+        menuOptions,
+        "Select default dev command:",
+      );
+    } else {
+      // Non-TTY: use first option
+      devCommand = project.options[0];
+      info(`Using dev command: ${bold(devCommand.cmd.join(" "))}`);
+    }
   }
+
+  // Check for existing config and handle appropriately
+  const hasExistingConfig = await configExists();
+  if (hasExistingConfig && isTTY()) {
+    warning("Existing WCP.md found - will be updated");
+  }
+
+  // Write WCP.md config
+  await writeConfig(
+    project?.type ?? "unknown",
+    project?.packageManager,
+    devCommand,
+  );
+
+  // Display success
+  const successLines = [
+    `${green(icons.success)} CLAUDE.md`,
+    `${green(icons.success)} AGENTS.md`,
+    `${green(icons.success)} WCP.md`,
+  ];
+
+  if (devCommand) {
+    successLines.push("");
+    successLines.push(`Dev command: ${dim(devCommand.cmd.join(" "))}`);
+  }
+
+  box(successLines, `${icons.wcp} Initialization Complete`);
+
+  // Show next steps
+  const steps: string[] = [];
+
+  if (devCommand) {
+    steps.push(`Run ${bold("wcp start")} to start your dev server`);
+    steps.push(`Run ${bold("wcp watch")} in another terminal to monitor logs`);
+  } else {
+    steps.push(`Run ${bold("wcp dev")} to manually select a dev command`);
+  }
+
+  steps.push(`Edit ${bold("WCP.md")} to customize settings`);
+
+  nextSteps(steps);
 }
 
 /**
