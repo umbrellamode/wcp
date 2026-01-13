@@ -143,6 +143,7 @@ jobs:
           cd homebrew-tap
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.TOKEN }}@github.com/umbrellamode/homebrew-tap.git
           git add Formula/wcp.rb
           git diff --staged --quiet || {
             git commit -m "Update wcp to ${{ steps.version.outputs.version }}"
