@@ -198,6 +198,13 @@ async function killWormhole(port: string): Promise<void> {
 }
 
 async function devWormhole(): Promise<void> {
+  // Check if dev wormhole is already running
+  if (await socketExists("dev") && await isSocketAlive("dev")) {
+    console.log("Dev server already running. Connecting...\n");
+    await connectWormhole("dev");
+    return;
+  }
+
   console.log(LOGO);
 
   const project = await detectProject();

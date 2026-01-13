@@ -35,6 +35,9 @@ Before running wcp, detect the project type and dev command:
 # Auto-detect and select dev command
 wcp dev
 
+# Watch all active sessions
+wcp watch
+
 # Start a process (creates the socket)
 wcp <name> -- <command>
 wcp dev -- npm run dev
@@ -54,7 +57,7 @@ wcp kill <name>
 ## Example workflow
 
 1. Run `wcp dev` to auto-detect and start the dev server
-2. Tell the user: "I've started the dev server. Run `wcp dev` in another
+2. Tell the user: "I've started the dev server. Run `wcp watch` in another
    terminal to monitor the logs."
 
 ## Key points

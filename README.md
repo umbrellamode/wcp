@@ -6,35 +6,43 @@ wcp (wormhole control protocol) creates Unix domain sockets for sharing terminal
 output across multiple processes. Run background dev servers while monitoring
 logs from external terminals.
 
-## Installation
+## Quick Start
+
+### 1. Install
 
 ```bash
 curl -fsSL https://wcp.dev/install | bash
 ```
 
-Or install with Deno:
+Or with Deno:
 
 ```bash
 deno install -gAf --name wcp https://raw.githubusercontent.com/umbrellamode/wcp/main/mod.ts
 ```
 
-## Quick Start
+### 2. Start your dev server in the background
+
+In your AI coding session, run:
 
 ```bash
-# Start a dev server in a wormhole
-wcp 3000 -- npm run dev
-
-# In another terminal, connect to view logs
-wcp 3000
-
-# Or use auto-detection
 wcp dev
 ```
+
+This auto-detects your project and starts the dev server in a wormhole.
+
+### 3. Monitor logs in another terminal
+
+```bash
+wcp watch
+```
+
+That's it! Your AI agent runs the dev server while you watch the logs separately.
 
 ## Usage
 
 ```
-wcp dev                   Detect project and select dev command
+wcp dev                   Detect project and start dev server
+wcp watch                 Stream logs from all active sessions
 wcp <port> -- <command>   Create wormhole and run command
 wcp <port>                Connect to existing wormhole
 wcp list                  List active wormholes
@@ -55,6 +63,9 @@ wcp api -- cargo run
 
 # Connect from another terminal
 wcp api
+
+# Watch all active sessions
+wcp watch
 
 # Kill a wormhole
 wcp kill api

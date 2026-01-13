@@ -1,3 +1,6 @@
+// Initialize Deno KV for install counter
+const kv = await Deno.openKv();
+
 const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,6 +162,30 @@ const html = `<!DOCTYPE html>
     footer a:hover {
       color: #888;
     }
+    .counter {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 3rem;
+    }
+    .counter-number {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #0f0;
+      font-variant-numeric: tabular-nums;
+    }
+    .counter-label {
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .counter-number.pulse {
+      animation: pulse 0.3s ease-out;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); color: #4f4; }
+      100% { transform: scale(1); }
+    }
   </style>
 </head>
 <body>
@@ -176,6 +203,11 @@ const html = `<!DOCTYPE html>
     <button onclick="navigator.clipboard.writeText('curl -fsSL https://wcp.dev/install | bash')">Copy</button>
   </div>
 
+  <div class="counter">
+    <span class="counter-number" id="counter">0</span>
+    <span class="counter-label">installs</span>
+  </div>
+
   <section>
     <h2>The Problem</h2>
     <ul>
@@ -191,10 +223,16 @@ const html = `<!DOCTYPE html>
   </section>
 
   <section>
-    <h2>Usage</h2>
+    <h2>Quick Start</h2>
+    
     <div class="example">
-      <div class="header">═══════════════════════════════════════════ TERMINAL 1 (AI Agent)</div>
-      <pre><span class="dim">$</span> <span class="green">wcp dev -- npm run dev</span>
+      <div class="header">═══════════════════════════════════════════ STEP 1: INSTALL</div>
+      <pre><span class="dim">$</span> <span class="green">curl -fsSL https://wcp.dev/install | bash</span></pre>
+    </div>
+
+    <div class="example">
+      <div class="header">═══════════════════════════════════════════ STEP 2: AI CODING SESSION</div>
+      <pre><span class="dim">$</span> <span class="green">wcp dev</span>
 <span class="cyan">✓ wcp opened: dev</span>
 <span class="dim">  Socket: ~/.wcp/wcp-dev.sock</span>
 
@@ -206,9 +244,9 @@ const html = `<!DOCTYPE html>
     </div>
 
     <div class="example">
-      <div class="header">═══════════════════════════════════════════ TERMINAL 2 (You)</div>
-      <pre><span class="dim">$</span> <span class="green">wcp dev</span>
-<span class="cyan">✓ Connected to wcp dev</span>
+      <div class="header">═══════════════════════════════════════════ STEP 3: YOUR TERMINAL</div>
+      <pre><span class="dim">$</span> <span class="green">wcp watch</span>
+<span class="cyan">Watching 1 session(s): dev</span>
 
 <span class="yellow">--- Replaying 12 buffered lines ---</span>
 <span class="gray">> my-app@1.0.0 dev
@@ -224,6 +262,7 @@ const html = `<!DOCTYPE html>
     <h2>Commands</h2>
     <ul>
       <li><code>wcp dev</code> — auto-detect and start dev server</li>
+      <li><code>wcp watch</code> — stream logs from all sessions</li>
       <li><code>wcp &lt;name&gt; -- &lt;cmd&gt;</code> — start a process</li>
       <li><code>wcp &lt;name&gt;</code> — connect to existing session</li>
       <li><code>wcp list</code> — show active sessions</li>
@@ -237,6 +276,47 @@ const html = `<!DOCTYPE html>
       <a href="https://github.com/umbrellamode/wcp">GitHub</a>
     </div>
   </footer>
+
+  <script>
+    const counterEl = document.getElementById('counter');
+    let currentCount = 0;
+
+    function animateCount(target) {
+      const start = currentCount;
+      const diff = target - start;
+      if (diff === 0) return;
+
+      const duration = 500;
+      const startTime = performance.now();
+
+      counterEl.classList.add('pulse');
+      setTimeout(() => counterEl.classList.remove('pulse'), 300);
+
+      function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = Math.round(start + diff * eased);
+        counterEl.textContent = value.toLocaleString();
+        if (progress < 1) requestAnimationFrame(update);
+        else currentCount = target;
+      }
+      requestAnimationFrame(update);
+    }
+
+    async function fetchCount() {
+      try {
+        const res = await fetch('/api/count');
+        const data = await res.json();
+        if (data.count !== currentCount) {
+          animateCount(data.count);
+        }
+      } catch (e) {}
+    }
+
+    fetchCount();
+    setInterval(fetchCount, 3000);
+  </script>
 </body>
 </html>`;
 
@@ -275,6 +355,9 @@ Before running wcp, detect the project type and dev command:
 # Auto-detect and select dev command
 wcp dev
 
+# Watch all active sessions
+wcp watch
+
 # Start a process (creates the socket)
 wcp <name> -- <command>
 wcp dev -- npm run dev
@@ -294,7 +377,7 @@ wcp kill <name>
 ## Example workflow
 
 1. Run \`wcp dev\` to auto-detect and start the dev server
-2. Tell the user: "I've started the dev server. Run \`wcp dev\` in another terminal to monitor the logs."
+2. Tell the user: "I've started the dev server. Run \`wcp watch\` in another terminal to monitor the logs."
 
 ## Key points
 
@@ -406,6 +489,9 @@ fi
 if [ $installed -eq 0 ]; then
   echo "  No AI tools detected (Claude Code, Cursor, OpenCode)"
 fi
+
+# Track install (silent, non-blocking)
+curl -sfSL -X POST "https://wcp.dev/api/install" > /dev/null 2>&1 &
 
 echo ""
 echo "Done! Run 'wcp dev' to get started."
@@ -587,6 +673,25 @@ async function renderDocs(): Promise<string> {
 Deno.serve(async (req: Request) => {
   const url = new URL(req.url);
   const path = url.pathname;
+
+  // API: Increment install counter
+  if (path === "/api/install" && req.method === "POST") {
+    const key = ["installs", "count"];
+    const result = await kv.get<number>(key);
+    const newCount = (result.value || 0) + 1;
+    await kv.set(key, newCount);
+    return new Response(JSON.stringify({ count: newCount }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // API: Get install count
+  if (path === "/api/count") {
+    const result = await kv.get<number>(["installs", "count"]);
+    return new Response(JSON.stringify({ count: result.value || 0 }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   // Serve install script
   if (path === "/install" || path === "/install.sh") {

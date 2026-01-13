@@ -101,5 +101,8 @@ if [ $installed -eq 0 ]; then
   echo "  No AI tools detected (Claude Code, Cursor, OpenCode)"
 fi
 
+# Track install (silent, non-blocking)
+curl -sfSL -X POST "https://wcp.dev/api/install" > /dev/null 2>&1 &
+
 echo ""
 echo "Done! Run 'wcp dev' to get started."
