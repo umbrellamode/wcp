@@ -50,6 +50,16 @@ const html = `<!DOCTYPE html>
       color: #fff;
       border-color: #666;
     }
+    .logos a.star {
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      border-color: #f0c14b;
+      color: #f0c14b;
+    }
+    .logos a.star:hover {
+      background: linear-gradient(135deg, #2a2a1a 0%, #1a1a0d 100%);
+      border-color: #ffd700;
+      color: #ffd700;
+    }
     .install {
       background: #111;
       border: 1px solid #333;
@@ -158,6 +168,7 @@ const html = `<!DOCTYPE html>
   <div class="logos">
     <a href="/docs">Documentation</a>
     <a href="https://github.com/umbrellamode/wcp" target="_blank">GitHub</a>
+    <a href="https://github.com/umbrellamode/wcp" target="_blank" class="star">&#9733; Star on GitHub</a>
   </div>
 
   <div class="install">
