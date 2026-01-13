@@ -230,25 +230,76 @@ async function devWormhole(): Promise<void> {
   await daemon.start();
 }
 
-const SOURCE_URL =
-  "https://raw.githubusercontent.com/umbrellamode/wcp/main/mod.ts";
+const REPO = "umbrellamode/wcp";
 
 async function updateWormhole(): Promise<void> {
-  console.log("Updating wcp...\n");
+  console.log("Checking for updates...\n");
 
-  const cmd = new Deno.Command("deno", {
-    args: ["install", "-gAf", "--name", "wcp", SOURCE_URL],
-    stdout: "inherit",
-    stderr: "inherit",
-  });
+  // Detect platform
+  const os = Deno.build.os;
+  const arch = Deno.build.arch;
 
-  const { code } = await cmd.output();
-
-  if (code === 0) {
-    console.log("\n✓ Updated successfully!");
+  let binaryName: string;
+  if (os === "darwin" && arch === "aarch64") {
+    binaryName = "wcp-darwin-arm64";
+  } else if (os === "darwin" && arch === "x86_64") {
+    binaryName = "wcp-darwin-x64";
+  } else if (os === "linux" && arch === "x86_64") {
+    binaryName = "wcp-linux-x64";
   } else {
-    console.error("\nUpdate failed. Try reinstalling:");
+    console.error(`Unsupported platform: ${os}-${arch}`);
+    console.log("Try reinstalling manually:");
     console.log("  curl -fsSL https://wcp.dev/install | bash");
     Deno.exit(1);
   }
+
+  // Get latest release info
+  const apiUrl = `https://api.github.com/repos/${REPO}/releases/latest`;
+  let releaseInfo;
+  try {
+    const response = await fetch(apiUrl);
+    if (!response.ok) {
+      throw new Error(`GitHub API error: ${response.status}`);
+    }
+    releaseInfo = await response.json();
+  } catch (error) {
+    console.error("Failed to check for updates:", error);
+    Deno.exit(1);
+  }
+
+  const latestVersion = releaseInfo.tag_name;
+  console.log(`Latest version: ${latestVersion}`);
+
+  // Find the download URL for our binary
+  const asset = releaseInfo.assets.find((a: { name: string }) =>
+    a.name === binaryName
+  );
+  if (!asset) {
+    console.error(`No binary found for ${binaryName}`);
+    Deno.exit(1);
+  }
+
+  console.log(`Downloading ${binaryName}...`);
+
+  // Download the binary
+  const downloadUrl = asset.browser_download_url;
+  const binaryResponse = await fetch(downloadUrl);
+  if (!binaryResponse.ok) {
+    console.error(`Failed to download: ${binaryResponse.status}`);
+    Deno.exit(1);
+  }
+
+  const binaryData = new Uint8Array(await binaryResponse.arrayBuffer());
+
+  // Find where wcp is installed
+  const execPath = Deno.execPath();
+
+  // Write to a temp file first, then replace
+  const tempPath = `${execPath}.new`;
+  await Deno.writeFile(tempPath, binaryData, { mode: 0o755 });
+
+  // Replace the current binary
+  await Deno.rename(tempPath, execPath);
+
+  console.log(`\n✓ Updated to ${latestVersion}!`);
 }
