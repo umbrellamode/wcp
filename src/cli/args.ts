@@ -27,7 +27,7 @@ export type Command =
  */
 export function parseArgs(args: string[]): Command {
   if (args.length === 0) {
-    return { type: "help" };
+    return { type: "watch" };
   }
 
   const first = args[0];

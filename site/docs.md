@@ -27,6 +27,22 @@ wcp update
 
 ## Commands
 
+### `wcp` (no arguments)
+
+The simplest way to use wcp. When you run `wcp` with no arguments, it will:
+
+1. **If sessions are running**: Watch all active sessions
+2. **If no sessions but config exists**: Auto-start the dev server from your
+   WCP.md config
+3. **If no sessions and no config**: Show helpful guidance
+
+```bash
+wcp
+```
+
+This is the recommended command for users who want to monitor what the AI agent
+is running.
+
 ### `wcp dev`
 
 Auto-detect your project type and start a dev server.
@@ -282,5 +298,6 @@ When using wcp from an AI coding agent:
 
 1. **Detect the project type** before running
 2. **Use `wcp dev`** for auto-detection when possible
-3. **Tell the user** how to connect: "Run `wcp dev` in another terminal"
+3. **Tell the user** how to connect: "Run `wcp` in another terminal to watch the
+   logs"
 4. **Check for existing wormholes** with `wcp list`

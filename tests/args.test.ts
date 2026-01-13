@@ -1,9 +1,9 @@
 import { assertEquals } from "@std/assert";
 import { parseArgs } from "../src/cli/args.ts";
 
-Deno.test("parseArgs - empty args returns help", () => {
+Deno.test("parseArgs - empty args returns watch", () => {
   const result = parseArgs([]);
-  assertEquals(result.type, "help");
+  assertEquals(result.type, "watch");
 });
 
 Deno.test("parseArgs - help command", () => {

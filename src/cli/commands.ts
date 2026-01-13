@@ -7,6 +7,11 @@ import {
   socketExists,
 } from "../utils/socket.ts";
 import { getConfigPath, readConfig } from "../utils/config.ts";
+import {
+  checkForUpdates,
+  clearUpdateCache,
+  displayUpdateNotification,
+} from "../utils/update-check.ts";
 import { detectProject, type DevOption } from "./detect.ts";
 import { selectOption } from "./menu.ts";
 import { initDocs } from "./init.ts";
@@ -37,11 +42,11 @@ const HELP_TEXT = `
 ${bold("wcp")} - Bidirectional log streaming for AI agents
 
 ${bold("QUICK START")}
+  wcp                   Watch sessions (or start dev server if none)
   wcp init              Set up project and detect dev command
-  wcp start             Start dev server from saved config
-  wcp watch             Monitor logs (auto-starts if needed)
 
 ${bold("USAGE")}
+  wcp                   Auto-watch sessions or start dev server
   wcp dev               Detect and select dev command interactively
   wcp <id> -- <cmd>     Create named session with command
   wcp <id>              Connect to existing session
@@ -55,9 +60,8 @@ ${bold("MAINTENANCE")}
   wcp help              Show this help
 
 ${bold("EXAMPLES")}
+  wcp                   # Watch all sessions (starts dev if needed)
   wcp init              # Set up project (creates WCP.md)
-  wcp start             # Start configured dev server
-  wcp watch             # Watch all sessions
   wcp 3000 -- npm dev   # Run command in named session
   wcp api -- cargo run  # Another named session
 
@@ -67,6 +71,15 @@ ${bold("FILES")}
 `;
 
 export async function executeCommand(cmd: Command): Promise<void> {
+  // Check for updates (non-blocking, cached)
+  // Skip for 'update', 'version', 'help', 'error' commands to avoid redundancy
+  if (!["update", "version", "help", "error"].includes(cmd.type)) {
+    const latestVersion = await checkForUpdates(VERSION);
+    if (latestVersion) {
+      displayUpdateNotification(VERSION, latestVersion);
+    }
+  }
+
   switch (cmd.type) {
     case "create":
       await createWormhole(cmd.port, cmd.command);
@@ -400,6 +413,7 @@ async function devWormhole(): Promise<void> {
 const REPO = "umbrellamode/wcp";
 
 async function updateWormhole(): Promise<void> {
+  console.log(`Current version: v${VERSION}`);
   console.log("Checking for updates...\n");
 
   // Detect platform
@@ -429,13 +443,20 @@ async function updateWormhole(): Promise<void> {
       throw new Error(`GitHub API error: ${response.status}`);
     }
     releaseInfo = await response.json();
-  } catch (error) {
-    console.error("Failed to check for updates:", error);
+  } catch (err) {
+    console.error("Failed to check for updates:", err);
     Deno.exit(1);
   }
 
   const latestVersion = releaseInfo.tag_name;
   console.log(`Latest version: ${latestVersion}`);
+
+  // Check if already up to date
+  const latestClean = latestVersion.replace(/^v/, "");
+  if (latestClean === VERSION) {
+    console.log("\n✓ Already up to date!");
+    return;
+  }
 
   // Find the download URL for our binary
   const asset = releaseInfo.assets.find((a: { name: string }) =>
@@ -467,6 +488,9 @@ async function updateWormhole(): Promise<void> {
 
   // Replace the current binary
   await Deno.rename(tempPath, execPath);
+
+  // Clear the update cache after successful update
+  await clearUpdateCache();
 
   console.log(`\n✓ Updated to ${latestVersion}!`);
 }

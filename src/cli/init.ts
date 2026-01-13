@@ -151,8 +151,8 @@ export async function initDocs(): Promise<void> {
   const steps: string[] = [];
 
   if (devCommand) {
-    steps.push(`Run ${bold("wcp start")} to start your dev server`);
-    steps.push(`Run ${bold("wcp watch")} in another terminal to monitor logs`);
+    steps.push(`Run ${bold("wcp dev")} to start your dev server`);
+    steps.push(`Run ${bold("wcp")} in another terminal to monitor logs`);
   } else {
     steps.push(`Run ${bold("wcp dev")} to manually select a dev command`);
   }
@@ -792,7 +792,7 @@ function generateClaudeMd(info: ProjectInfo, existing: ExistingDoc): string {
   lines.push("## Background Processes");
   lines.push("");
   lines.push(
-    "Use `/wcp` to run dev servers and background processes. This allows you to start long-running processes while the user monitors logs from an external terminal.",
+    "Use `wcp` to run dev servers and background processes. This allows you to start long-running processes while the user monitors logs from an external terminal.",
   );
   lines.push("");
   lines.push("```bash");
@@ -800,7 +800,7 @@ function generateClaudeMd(info: ProjectInfo, existing: ExistingDoc): string {
   lines.push("wcp dev");
   lines.push("");
   lines.push("# User can monitor from another terminal");
-  lines.push("wcp watch");
+  lines.push("wcp");
   lines.push("```");
   lines.push("");
 
@@ -869,7 +869,9 @@ function generateAgentsMd(info: ProjectInfo, existing: ExistingDoc): string {
   lines.push("");
   lines.push("**Commands:**");
   lines.push("- `wcp dev` - Auto-detect and start dev server");
-  lines.push("- `wcp watch` - Monitor logs from another terminal");
+  lines.push(
+    "- `wcp` - Monitor logs from another terminal (auto-starts dev server if none running)",
+  );
   lines.push(
     "- `wcp <name> -- <command>` - Start a named process (e.g., `wcp dev -- npm run dev`)",
   );

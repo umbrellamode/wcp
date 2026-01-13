@@ -449,7 +449,7 @@ const html = `<!DOCTYPE html>
         <span class="terminal-label">YOUR TERMINAL</span>
       </div>
       <div class="terminal-body">
-        <pre><span class="dim">$</span> <span class="primary">wcp watch</span>
+        <pre><span class="dim">$</span> <span class="primary">wcp</span>
 <span class="green">Watching 1 session(s): dev</span>
 
 <span class="yellow">--- Replaying 12 buffered lines ---</span>
@@ -485,8 +485,8 @@ const html = `<!DOCTYPE html>
             <div style="color: var(--muted-foreground); font-size: 0.75rem; font-weight: 500; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em;">For You</div>
             <ul style="list-style: none; padding: 0;">
               <li style="margin-bottom: 1rem; padding-left: 1.2rem; position: relative; display: flex; flex-direction: column; gap: 0.25rem;">
-                <code style="color: var(--primary);">wcp watch</code>
-                <span style="color: var(--muted-foreground); font-size: 0.85rem;">Stream logs from all active sessions in your terminal.</span>
+                <code style="color: var(--primary);">wcp</code>
+                <span style="color: var(--muted-foreground); font-size: 0.85rem;">Watch sessions or auto-start dev server if none running.</span>
               </li>
               <li style="margin-bottom: 1rem; padding-left: 1.2rem; position: relative; display: flex; flex-direction: column; gap: 0.25rem;">
                 <code style="color: var(--primary);">wcp list</code>
@@ -585,11 +585,11 @@ Before running wcp, detect the project type and dev command:
 ## Usage
 
 \`\`\`bash
+# Watch sessions (or auto-start dev server if none running)
+wcp
+
 # Auto-detect and select dev command
 wcp dev
-
-# Watch all active sessions
-wcp watch
 
 # Start a process (creates the socket)
 wcp <name> -- <command>
@@ -610,10 +610,11 @@ wcp kill <name>
 ## Example workflow
 
 1. Run \`wcp dev\` to auto-detect and start the dev server
-2. Tell the user: "I've started the dev server. Run \`wcp watch\` in another terminal to monitor the logs."
+2. Tell the user: "I've started the dev server. Run \`wcp\` in another terminal to monitor the logs."
 
 ## Key points
 
+- Running \`wcp\` with no arguments will watch active sessions, or start the dev server if none are running
 - The name can be anything: \`dev\`, \`server\`, \`3000\`, \`my-app\`
 - Late-joining terminals see the last 1000 lines of history
 - All connected terminals see the same live output
