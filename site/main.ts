@@ -82,10 +82,7 @@ const html = `<!DOCTYPE html>
     .logos .github-btn-wrapper {
       display: inline-flex;
       align-items: center;
-      padding: 0.2rem 0.5rem;
-      border: 1px solid #333;
-      border-radius: 4px;
-      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      height: 28px;
     }
     .install {
       background: #111;
