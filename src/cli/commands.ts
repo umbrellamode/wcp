@@ -11,6 +11,8 @@ import { selectOption } from "./menu.ts";
 import { initDocs } from "./init.ts";
 import type { Command } from "./args.ts";
 
+const VERSION = "0.2.2";
+
 const LOGO = `
 
  _  _  _ ___ ___
@@ -31,6 +33,7 @@ USAGE:
   wcp kill <port>           Close a wcp
   wcp init                  Generate CLAUDE.md and AGENTS.md
   wcp update                Update to latest version
+  wcp version               Show version
   wcp help                  Show this help
 
 EXAMPLES:
@@ -74,6 +77,10 @@ export async function executeCommand(cmd: Command): Promise<void> {
 
     case "update":
       await updateWormhole();
+      break;
+
+    case "version":
+      console.log(`wcp v${VERSION}`);
       break;
 
     case "help":

@@ -7,6 +7,7 @@ export type Command =
   | { type: "watch" }
   | { type: "init" }
   | { type: "update" }
+  | { type: "version" }
   | { type: "help" }
   | { type: "error"; message: string };
 
@@ -32,6 +33,10 @@ export function parseArgs(args: string[]): Command {
   // Special commands
   if (first === "help" || first === "--help" || first === "-h") {
     return { type: "help" };
+  }
+
+  if (first === "version" || first === "--version" || first === "-v") {
+    return { type: "version" };
   }
 
   if (first === "list" || first === "ls") {
