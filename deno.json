@@ -1,6 +1,6 @@
 {
   "name": "@wormhole/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "exports": "./mod.ts",
   "tasks": {
     "dev": "deno run --allow-net --allow-read --allow-write --allow-run --allow-env mod.ts",
