@@ -105,4 +105,4 @@ fi
 curl -sfSL -X POST "https://wcp.dev/api/install" > /dev/null 2>&1 &
 
 echo ""
-echo "Done! Run 'wcp dev' to get started."
+echo "Done! Run 'wcp init' in your project folder to get started."
