@@ -5,7 +5,11 @@
   "tasks": {
     "dev": "deno run --allow-net --allow-read --allow-write --allow-run --allow-env mod.ts",
     "test": "deno test --allow-all",
-    "compile": "deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --output wormhole mod.ts"
+    "compile": "deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --output wcp mod.ts",
+    "compile:macos-arm64": "deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --target aarch64-apple-darwin --output dist/wcp-darwin-arm64 mod.ts",
+    "compile:macos-x64": "deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --target x86_64-apple-darwin --output dist/wcp-darwin-x64 mod.ts",
+    "compile:linux-x64": "deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --target x86_64-unknown-linux-gnu --output dist/wcp-linux-x64 mod.ts",
+    "compile:all": "mkdir -p dist && deno task compile:macos-arm64 && deno task compile:macos-x64 && deno task compile:linux-x64"
   },
   "imports": {
     "@std/path": "jsr:@std/path@^1",

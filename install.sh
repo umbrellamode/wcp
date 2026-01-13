@@ -5,8 +5,8 @@
 
 set -e
 
+REPO="umbrellamode/wcp"
 WCP_URL="https://wcp.dev/wcp.md"
-SOURCE_URL="https://raw.githubusercontent.com/umbrellamode/wcp/main/mod.ts"
 
 echo ""
 echo " _  _  _ ___ ___"
@@ -15,16 +15,57 @@ echo "| | V V | _||  _/"
 echo " \\_/\\_/ |___|_|"
 echo ""
 
-# Check for Deno
-if ! command -v deno &> /dev/null; then
-  echo "Deno not found. Installing Deno first..."
-  curl -fsSL https://deno.land/install.sh | sh
-  export PATH="$HOME/.deno/bin:$PATH"
+# Detect platform
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+
+case "$OS" in
+  darwin)
+    case "$ARCH" in
+      arm64|aarch64) BINARY="wcp-darwin-arm64" ;;
+      x86_64) BINARY="wcp-darwin-x64" ;;
+      *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+    esac
+    ;;
+  linux)
+    case "$ARCH" in
+      x86_64) BINARY="wcp-linux-x64" ;;
+      *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+    esac
+    ;;
+  *)
+    echo "Unsupported OS: $OS"
+    exit 1
+    ;;
+esac
+
+# Get latest release URL
+DOWNLOAD_URL="https://github.com/$REPO/releases/latest/download/$BINARY"
+
+# Determine install location
+if [ -w "/usr/local/bin" ]; then
+  INSTALL_DIR="/usr/local/bin"
+else
+  INSTALL_DIR="$HOME/.local/bin"
+  mkdir -p "$INSTALL_DIR"
 fi
 
 echo "Installing wcp..."
-deno install -gAf --name wcp "$SOURCE_URL"
-echo "✓ Installed wcp"
+echo "  Downloading $BINARY..."
+
+# Download binary
+curl -fsSL "$DOWNLOAD_URL" -o "$INSTALL_DIR/wcp"
+chmod +x "$INSTALL_DIR/wcp"
+
+echo "✓ Installed wcp to $INSTALL_DIR/wcp"
+
+# Check if install dir is in PATH
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+  echo ""
+  echo "  ⚠ $INSTALL_DIR is not in your PATH"
+  echo "  Add this to your shell profile:"
+  echo "    export PATH=\"$INSTALL_DIR:\$PATH\""
+fi
 
 # Install AI tool commands
 echo ""

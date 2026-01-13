@@ -1,4 +1,4 @@
-import { exists } from "@std/fs";
+import { exists } from "jsr:@std/fs@^1";
 
 export interface DevOption {
   name: string;

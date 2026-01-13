@@ -1,5 +1,5 @@
-import { join } from "@std/path";
-import { ensureDir, exists } from "@std/fs";
+import { join } from "jsr:@std/path@^1";
+import { ensureDir, exists } from "jsr:@std/fs@^1";
 
 const WCP_DIR = ".wcp";
 

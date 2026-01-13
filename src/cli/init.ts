@@ -1,5 +1,5 @@
-import { exists } from "@std/fs";
-import { basename, join } from "@std/path";
+import { exists } from "jsr:@std/fs@^1";
+import { basename, join } from "jsr:@std/path@^1";
 import { playWormholeAnimation, spinner } from "./animation.ts";
 
 interface ProjectInfo {

@@ -11,7 +11,7 @@ import {
   removeSocket,
   socketExists,
 } from "../src/utils/socket.ts";
-import { join } from "@std/path";
+import { join } from "jsr:@std/path@^1";
 
 Deno.test("getWcpDir - returns path under home directory", () => {
   const dir = getWcpDir();
