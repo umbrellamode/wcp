@@ -148,7 +148,9 @@ async function watchAll(): Promise<void> {
     return;
   }
 
-  console.log(`Watching ${aliveSockets.length} session(s): ${aliveSockets.join(", ")}\n`);
+  console.log(
+    `Watching ${aliveSockets.length} session(s): ${aliveSockets.join(", ")}\n`,
+  );
 
   // Create clients for each session with different colors
   const clients = aliveSockets.map((port, index) => {

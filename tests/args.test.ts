@@ -1,5 +1,5 @@
-import { assertEquals } from "jsr:@std/assert";
-import { type Command, parseArgs } from "../src/cli/args.ts";
+import { assertEquals } from "@std/assert";
+import { parseArgs } from "../src/cli/args.ts";
 
 Deno.test("parseArgs - empty args returns help", () => {
   const result = parseArgs([]);

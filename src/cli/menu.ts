@@ -5,7 +5,7 @@ export interface MenuOption<T> {
 }
 
 const encoder = new TextEncoder();
-const decoder = new TextDecoder();
+const _decoder = new TextDecoder();
 
 function write(text: string): void {
   Deno.stdout.writeSync(encoder.encode(text));

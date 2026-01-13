@@ -62,7 +62,7 @@ export class WcpDaemon {
     };
 
     // Spawn the child process
-    await this.processManager.spawn(this.options.command);
+    this.processManager.spawn(this.options.command);
 
     // Handle graceful shutdown
     this.setupSignalHandlers();

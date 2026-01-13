@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
+import { assertEquals, assertStringIncludes } from "@std/assert";
 import {
   encodeMessage,
   MessageReader,
@@ -234,7 +234,7 @@ Deno.test("Integration - Socket lifecycle", async () => {
 Deno.test("Integration - Full replay scenario", () => {
   // Setup: Server has been running and has buffered output
   const serverBuffer = new RingBuffer<WormholeMessage>(1000);
-  const serverReader = new MessageReader();
+  const _serverReader = new MessageReader();
 
   // Simulate 50 lines of output
   for (let i = 0; i < 50; i++) {
@@ -284,7 +284,6 @@ Deno.test("Integration - Full replay scenario", () => {
 
   // Client receives in 1KB chunks
   let receivedCount = 0;
-  let inReplay = false;
   for (let i = 0; i < networkBuffer.length; i += 1024) {
     const chunk = networkBuffer.slice(
       i,
@@ -294,10 +293,8 @@ Deno.test("Integration - Full replay scenario", () => {
 
     for (const msg of messages) {
       if (msg.type === "replay-start") {
-        inReplay = true;
         clientOutput.push(`--- Replaying ${msg.payload} lines ---`);
       } else if (msg.type === "replay-end") {
-        inReplay = false;
         clientOutput.push("--- Live stream ---");
       } else if (msg.type === "data") {
         clientOutput.push(msg.payload);

@@ -2,7 +2,7 @@ import {
   assertEquals,
   assertNotEquals,
   assertStringIncludes,
-} from "jsr:@std/assert";
+} from "@std/assert";
 import {
   ensureWcpDir,
   getSocketPath,
@@ -11,7 +11,7 @@ import {
   removeSocket,
   socketExists,
 } from "../src/utils/socket.ts";
-import { join } from "jsr:@std/path@^1";
+import { join } from "@std/path";
 
 Deno.test("getWcpDir - returns path under home directory", () => {
   const dir = getWcpDir();

@@ -16,7 +16,7 @@ export class ProcessManager {
    * Spawn a command with piped streams
    * @param cmdArgs - Full command array, e.g., ["npm", "run", "dev"]
    */
-  async spawn(cmdArgs: string[]): Promise<void> {
+  spawn(cmdArgs: string[]): void {
     const [cmd, ...args] = cmdArgs;
 
     const command = new Deno.Command(cmd, {
