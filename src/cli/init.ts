@@ -1,5 +1,5 @@
 import { exists } from "@std/fs";
-import { basename } from "@std/path";
+import { basename, join } from "@std/path";
 import { playWormholeAnimation, spinner } from "./animation.ts";
 import { detectProject, type DevOption } from "./detect.ts";
 import { selectOption } from "./menu.ts";
