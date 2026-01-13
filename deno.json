@@ -1,0 +1,17 @@
+{
+  "name": "@wormhole/cli",
+  "version": "0.1.0",
+  "exports": "./mod.ts",
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --allow-run --allow-env mod.ts",
+    "test": "deno test --allow-all",
+    "compile": "deno compile --allow-net --allow-read --allow-write --allow-run --allow-env --output wormhole mod.ts"
+  },
+  "imports": {
+    "@std/path": "jsr:@std/path@^1",
+    "@std/fs": "jsr:@std/fs@^1"
+  },
+  "compilerOptions": {
+    "strict": true
+  }
+}
