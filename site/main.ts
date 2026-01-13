@@ -8,6 +8,32 @@ const html = `<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>wcp - bidirectional log streaming for AI agents</title>
   <meta name="description" content="Share terminal output between AI coding agents and external terminals. Monitor dev servers from anywhere.">
+  
+  <!-- SEO -->
+  <meta name="keywords" content="wcp, wormhole, CLI, terminal, log streaming, AI agents, dev server, unix socket, Claude, Cursor, coding assistant">
+  <meta name="author" content="umbrellamode">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://wcp.dev">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://wcp.dev">
+  <meta property="og:title" content="wcp - bidirectional log streaming for AI agents">
+  <meta property="og:description" content="Share terminal output between AI coding agents and external terminals. Monitor dev servers from anywhere.">
+  <meta property="og:image" content="https://wcp.dev/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:site_name" content="wcp">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="wcp - bidirectional log streaming for AI agents">
+  <meta name="twitter:description" content="Share terminal output between AI coding agents and external terminals. Monitor dev servers from anywhere.">
+  <meta name="twitter:image" content="https://wcp.dev/og.png">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕳️</text></svg>">
+  
   <style>
     * {
       margin: 0;
@@ -53,15 +79,13 @@ const html = `<!DOCTYPE html>
       color: #fff;
       border-color: #666;
     }
-    .logos a.star {
+    .logos .github-btn-wrapper {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid #333;
+      border-radius: 4px;
       background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-      border-color: #f0c14b;
-      color: #f0c14b;
-    }
-    .logos a.star:hover {
-      background: linear-gradient(135deg, #2a2a1a 0%, #1a1a0d 100%);
-      border-color: #ffd700;
-      color: #ffd700;
     }
     .install {
       background: #111;
@@ -195,7 +219,14 @@ const html = `<!DOCTYPE html>
   <div class="logos">
     <a href="/docs">Documentation</a>
     <a href="https://github.com/umbrellamode/wcp" target="_blank">GitHub</a>
-    <a href="https://github.com/umbrellamode/wcp" target="_blank" class="star">&#9733; Star on GitHub</a>
+    <span class="github-btn-wrapper">
+      <a class="github-button" href="https://github.com/umbrellamode/wcp" 
+         data-color-scheme="no-preference: dark; light: dark; dark: dark;"
+         data-icon="octicon-star"
+         data-size="large" 
+         data-show-count="true" 
+         aria-label="Star umbrellamode/wcp on GitHub">Star</a>
+    </span>
   </div>
 
   <div class="install">
@@ -317,6 +348,7 @@ const html = `<!DOCTYPE html>
     fetchCount();
     setInterval(fetchCount, 3000);
   </script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
 </html>`;
 
@@ -386,6 +418,49 @@ wcp kill <name>
 - All connected terminals see the same live output
 - Socket is at \`~/.wcp/wcp-<name>.sock\`
 `;
+
+function generateOgImage(): string {
+  return `<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#000000"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  
+  <!-- Grid pattern -->
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1a1a1a" stroke-width="1"/>
+  </pattern>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.5"/>
+  
+  <!-- Terminal window -->
+  <rect x="100" y="120" width="1000" height="400" rx="12" fill="#111" stroke="#333" stroke-width="2"/>
+  
+  <!-- Terminal header -->
+  <rect x="100" y="120" width="1000" height="40" rx="12" fill="#1a1a1a"/>
+  <rect x="100" y="148" width="1000" height="12" fill="#1a1a1a"/>
+  <circle cx="130" cy="140" r="7" fill="#ff5f56"/>
+  <circle cx="155" cy="140" r="7" fill="#ffbd2e"/>
+  <circle cx="180" cy="140" r="7" fill="#27ca3f"/>
+  
+  <!-- Logo -->
+  <text x="600" y="260" font-family="SF Mono, Fira Code, monospace" font-size="72" fill="#ffffff" text-anchor="middle" font-weight="400">/wcp</text>
+  
+  <!-- Tagline -->
+  <text x="600" y="320" font-family="SF Mono, Fira Code, monospace" font-size="24" fill="#888888" text-anchor="middle">bidirectional log streaming for AI coding agents</text>
+  
+  <!-- Command example -->
+  <text x="600" y="420" font-family="SF Mono, Fira Code, monospace" font-size="20" fill="#555555" text-anchor="middle">$</text>
+  <text x="620" y="420" font-family="SF Mono, Fira Code, monospace" font-size="20" fill="#00ff00" text-anchor="start">curl -fsSL https://wcp.dev/install | bash</text>
+  
+  <!-- Accent line -->
+  <rect x="100" y="600" width="1000" height="4" fill="#00ff00" opacity="0.6"/>
+</svg>`;
+}
 
 const installSh = `#!/bin/bash
 
@@ -655,6 +730,23 @@ async function renderDocs(): Promise<string> {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>wcp Documentation</title>
   <meta name="description" content="Documentation for wcp - bidirectional log streaming CLI">
+  
+  <!-- Open Graph -->
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://wcp.dev/docs">
+  <meta property="og:title" content="wcp Documentation">
+  <meta property="og:description" content="Documentation for wcp - bidirectional log streaming CLI">
+  <meta property="og:image" content="https://wcp.dev/og.png">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="wcp Documentation">
+  <meta name="twitter:description" content="Documentation for wcp - bidirectional log streaming CLI">
+  <meta name="twitter:image" content="https://wcp.dev/og.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕳️</text></svg>">
+  
   <style>${docsStyle}</style>
 </head>
 <body>
@@ -690,6 +782,17 @@ Deno.serve(async (req: Request) => {
     const result = await kv.get<number>(["installs", "count"]);
     return new Response(JSON.stringify({ count: result.value || 0 }), {
       headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Serve OG image
+  if (path === "/og.png" || path === "/og.svg") {
+    const svg = generateOgImage();
+    return new Response(svg, {
+      headers: {
+        "Content-Type": "image/svg+xml",
+        "Cache-Control": "public, max-age=86400",
+      },
     });
   }
 
