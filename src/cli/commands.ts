@@ -12,8 +12,7 @@ import {
   clearUpdateCache,
   displayUpdateNotification,
 } from "../utils/update-check.ts";
-import { detectProject, type DevOption } from "./detect.ts";
-import { selectOption } from "./menu.ts";
+import { detectProject } from "./detect.ts";
 import { initDocs } from "./init.ts";
 import type { Command } from "./args.ts";
 import {
@@ -48,7 +47,7 @@ ${bold("QUICK START")}
 
 ${bold("USAGE")}
   wcp                   Auto-watch sessions or start dev server
-  wcp dev               Detect and select dev command interactively
+  wcp dev               Detect and start dev server (non-interactive)
   wcp <id> -- <cmd>     Create named session with command
   wcp <id>              Connect to existing session
   wcp list              List active sessions
@@ -392,20 +391,11 @@ async function devWormhole(): Promise<void> {
 
   console.log(`Detected: ${typeLabel}\n`);
 
-  const menuOptions = project.options.map((opt: DevOption) => ({
-    label: opt.name,
-    description: opt.cmd.join(" "),
-    value: opt,
-  }));
+  // Auto-select first option (typically "dev" script)
+  // No interactive menu - AI agents run in non-TTY environments
+  const selected = project.options[0];
 
-  const selected = await selectOption(menuOptions, "Select a command:");
-
-  if (!selected) {
-    console.log("Cancelled.");
-    return;
-  }
-
-  console.log(`\nStarting wcp with: ${selected.cmd.join(" ")}\n`);
+  console.log(`Starting: ${selected.cmd.join(" ")}\n`);
 
   const daemon = new WcpDaemon({ port: "dev", command: selected.cmd });
   await daemon.start();
